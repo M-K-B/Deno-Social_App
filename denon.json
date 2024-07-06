@@ -1,0 +1,14 @@
+{
+    "scripts": {
+      "start": {
+        "cmd": "run --allow-net server.js",
+        "desc": "Run my Deno server"
+      }
+    },
+    "watcher": {
+      "exts": ["ts", "js", "json"],
+      "match": ["*.*"],
+      "skip": ["*/.git/*"]
+    }
+  }
+  
