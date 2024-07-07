@@ -15,6 +15,9 @@ userRouter.post('/register', register);
 userRouter.get('/logout', logout);
 
 
+
+userRouter.get('/followers/:id', getFollowerAndFollowingCounts);
+
 userRouter.get("/", (context) => {
   context.response.body = "Hello, Oak!";
   console.log('Hello');
@@ -135,5 +138,47 @@ async function logout(context){
 }
 
 
+async function getFollowerAndFollowingCounts(context) {
+  const id = context.params.id;
+  console.log('User ID:', id);
+  
+  try {
+    // Fetch follower count
+    const { count: followerCount, error: followerError } = await supabase
+      .from('follow')
+      .select('*', { count: 'exact' })
+      .eq('following_id', id);
+    
+    if (followerError) {
+      console.error('Error fetching follower count:', followerError);
+      context.response.status = 500;
+      context.response.body = { error: 'Failed to fetch follower count' };
+      return;
+    }
 
+    console.log('Follower Count:', followerCount);
+
+    // Fetch following count
+    const { count: followingCount, error: followingError } = await supabase
+      .from('follow')
+      .select('*', { count: 'exact' })
+      .eq('follower_id', id);
+    
+    if (followingError) {
+      console.error('Error fetching following count:', followingError);
+      context.response.status = 500;
+      context.response.body = { error: 'Failed to fetch following count' };
+      return;
+    }
+
+    console.log('Following Count:', followingCount);
+
+    // Send combined response
+    context.response.body = { followerCount, followingCount };
+  } catch (error) {
+    console.error('Error:', error);
+    context.response.status = 500;
+    context.response.body = { error: 'Failed to fetch counts' };
+  }
+}
 export default userRouter;

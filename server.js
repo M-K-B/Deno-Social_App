@@ -6,14 +6,22 @@ import { oakCors } from "https://deno.land/x/cors@v1.2.2/mod.ts";
 // Create a new Oak application
 const app = new Application();
 
+
+app.use(async (ctx, next) => {
+  ctx.response.headers.set('Access-Control-Allow-Origin', '*'); // * for all servers, you can use your own server address
+  ctx.response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE'); // Which methods you want to allow
+  ctx.response.headers.set('Access-Control-Allow-Headers', 'Content-Type'); // If your request body has json
+  await next(); // If you use async await in other middlewares, you must use async await here
+ });
+
 app.use(oakCors({
-  origin: [
-    'http://localhost:3000', // Allow local development server
-    'http://m-k-b.github.io', // Allow GitHub Pages site
-  ],
-  methods: ['GET', 'POST'], // Allow only GET and POST methods
-   // Allow Authorization header
+  origin: "*", // Allow all origins
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Allow all methods
+  headers: '*',
+  
+  optionsSuccessStatus: 200, // Allow all headers
 }));
+
 
 app.use(async (ctx, next) => {
     await next();
