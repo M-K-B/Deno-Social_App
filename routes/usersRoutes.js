@@ -62,24 +62,44 @@ async function register(context) {
     if (context.request.hasBody) {
       const body = await context.request.body.json();
       console.log(body) 
-        const { email, password } = await body;
+
+
+
+        const { email, password, username, fullname } = await body;
+
+        const { data: username_response, error } = await supabase
+        .from('User')
+        .select('*')
+        .eq('username', username);
+
+
+        if (error) {
+          console.error("Error checking username:", error);
+        } else if (username_response.length > 0) {
+          console.log("Username exists:", username_response);
+        } else {
+          const { data, error } = await supabase.auth.signUp({
+            email,
+            password
+          });
+          
+  
+          if (error) {
+            console.log(error.code);
+            let error_name = await error.code
+            context.response.body = { message: 'Registration failed', error_name };
+          } else {
+            
+  
+            let CreatedID = data.user.id;
+            await supabase.from('User').insert([{ user_id: CreatedID , username : username, name : fullname},]).select()
+            
+            context.response.body = { message: 'Registration successful', user: data.user.id };
+          }
+        }
         
         // Do something with email and password
-        const { data, error } = await supabase.auth.signUp({
-          email,
-          password
-        });
-      
-        if (error) {
-          console.log(error.code);
-          let error_name = await error.code
-          context.response.body = { message: 'Registration failed', error_name };
-        } else {
-          let CreatedID = data.user.id;
-          await supabase.from('User').insert([{ user_id: CreatedID },]).select()
-          
-          context.response.body = { message: 'Registration successful', user: data.user.id };
-        }
+        
         
     } else {
       context.response.status = 400;
