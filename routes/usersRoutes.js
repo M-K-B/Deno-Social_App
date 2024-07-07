@@ -12,7 +12,7 @@ userRouter.post('/register', register);
 //userRouter.post('/register')
 
 
-
+userRouter.get('/logout', logout);
 
 
 userRouter.get("/", (context) => {
@@ -39,8 +39,11 @@ async function login(context) {
           let error_name = await error.name
           context.response.body = { message: 'Login failed', error};
         } else {
+          const { dataSession, error } = await supabase.auth.getSession()
+
+          console.log(data.session)
+          context.response.body = { user: data.user , session : data.session};
           
-          context.response.body = { message: 'Login successful', user: data.user };
         }
         
     } else {
@@ -115,7 +118,21 @@ async function register(context) {
     
 }
 
+async function logout(context){
+  try {
+    const { error } = await supabase.auth.signOut();
 
+    if (error) {
+      throw new Error('Logout failed'); // Handle error if logout fails
+    }
+    context.response.status = 200
+    context.response.body = { message: 'Logged out successfully' };
+  } catch (err) {
+    console.error('Logout error:', err);
+    context.response.status = 500;
+    context.response.body = { message: 'Failed to log out', error: err.message };
+  }
+}
 
 
 
